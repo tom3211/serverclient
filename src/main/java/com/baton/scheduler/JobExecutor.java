@@ -10,11 +10,12 @@ public class JobExecutor  implements Runnable {
 	private int maxRuns  ;
 	private volatile ClientData activeClient = null ;
 	private boolean logMsg = false ;
-	
+	private long sleepPeriod = 1000L ;
 	JobExecutor(PriorityQueue<ClientData> queue, int maxRuns) {
 		clientQueue = queue ;
 		this.maxRuns = maxRuns ;
 		logMsg = ServerClientConfig.getConfiguration().getBoolean("com.baton.server.logMsg", false) ;
+		sleepPeriod =  ServerClientConfig.getConfiguration().getLong("com.baton.server.jobExectorSleepPeriod", sleepPeriod);
 	}
 	
 	public  ClientData getActiveClient() {
@@ -38,12 +39,12 @@ public class JobExecutor  implements Runnable {
 				
 			}
 			if(activeClient == null)
-				continue ; // to handle any unintended interruptions
+				continue ; 
 			try {	
 				for(int i = 0 ; i < maxRuns ; i++) {
 					System.out.println(activeClient.getClientName() + ", Counter value: " + activeClient.getRunCount());
 					activeClient.incrementRunCount(); 
-					Thread.sleep(5000L);
+					Thread.sleep(1000L);
 				}
 				FairScheduleManager.getInstance().addClient(activeClient);
 				
