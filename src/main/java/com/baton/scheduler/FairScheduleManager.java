@@ -40,28 +40,76 @@ public final class  FairScheduleManager {
 		clientQueue = new PriorityQueue<ClientData>() ;
 		jobExecutor = new JobExecutor(clientQueue, 4);
 		schedulerThread = new Thread(jobExecutor);
+		// make the thread daemon 
+		schedulerThread.setDaemon(true);
 		schedulerThread.start(); 
 	}
 
 	public static FairScheduleManager getInstance() {
 		return instance ;
 	}
-	public boolean isAlreadyRegisterd(ClientData data) {
-		synchronized(clientQueue) {
-			return clientQueue.contains(data);
+	public boolean isClientJobRunning(ClientData clientData) {
+		ClientData activeClient = jobExecutor.getActiveClient() ;
+		if(activeClient != null && activeClient.equals(clientData)) {
+			return true ;
 		}
+		return false ;
+	}
+	// this method should not called frequently. This is just added for
+	// unit tests.
+	public ClientData getClientData(ClientData clientData) {
+		ClientData cloneData = null ;
+		ClientData queueClient = null ;
+		synchronized(clientQueue) {
+			queueClient = jobExecutor.getActiveClient() ;
+			if(queueClient == null) {
+				for(ClientData cd : clientQueue) {
+					if(cd.equals(clientData)) {
+						queueClient = cd ;
+						break ;
+					}
+				}
+			}
+			if(queueClient != null) {
+				cloneData = queueClient.clone() ;
+			}
+		}
+		return cloneData ;
+	}
+	public int getSize() {
+		return clientQueue.size() ;
+	}
+	public boolean isAlreadyRegisterd(ClientData clientData) {
+		synchronized(clientQueue) {
+			ClientData activeClient = jobExecutor.getActiveClient() ;
+			if(activeClient != null && activeClient.equals(clientData) ||
+					clientQueue.contains(clientData)) {
+				return true ;
+			}
+		}
+		return false ;
 		
 	}
-	public  void addClient(ClientData data) {
+	public  boolean addClient(ClientData clientData) {
 		if(logQueueMsg)
-			System.out.println(" request to add client " + data.getClientName() + " " + System.currentTimeMillis());
+			System.out.println(" request to add client " +  clientData.getClientName() + " " + System.currentTimeMillis());
+		boolean added = false ;
 		synchronized(clientQueue) {
-			data.resetClientWeight();
+			ClientData activeClient = jobExecutor.getActiveClient() ;
+			if(activeClient != null && activeClient.equals(clientData) ||
+					clientQueue.contains(clientData)) {
+				System.out.println("Not adding client as it is already exists " + clientData.getClientName());
+				return added;
+				
+			}
+			clientData.resetClientWeight();
 			if(logQueueMsg)
-				System.out.println(" Done Adding client " + data.getClientName() + " wt " + data.getClientWeight()) ;
-			clientQueue.add(data);
+				System.out.println(" Done Adding client " + clientData.getClientName() + " wt " + clientData.getClientWeight()) ;
+			clientQueue.add(clientData);
 			clientQueue.notify() ;
+			added = true ;	
 		}
+		return added ;
 	}
 	public  void removeClient(String clientName) {
 		if(logQueueMsg)
@@ -75,6 +123,7 @@ public final class  FairScheduleManager {
 					System.out.println(" Size " + clientQueue.size() + " " + System.currentTimeMillis());
 			
 				schedulerThread.interrupt();
+				return ;
 			} 
 			// may not be needed to remove if it is the one i.e. getting processed.
 			ClientData cd = new ClientData(clientName);
@@ -87,8 +136,7 @@ public final class  FairScheduleManager {
 	public static void main(String[] argv) {
 		FairScheduleManager fs = new FairScheduleManager() ;
 		for(int i = 0 ; i < 4 ; i++) {
-			ClientData cd = new ClientData(ClientDataGenerator.getInstance().generateClintName()) ;
-			fs.addClient(cd);
+			fs.addClient(new ClientData(ClientDataGenerator.getInstance().generateClintName()));
 			try {
 				Thread.sleep(200L);
 			} catch (InterruptedException e) {

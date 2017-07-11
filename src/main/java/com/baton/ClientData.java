@@ -6,11 +6,19 @@ public class ClientData implements Comparable<ClientData>{
 	private Integer clientWeight ;
 	private String clientName ;
 	private int runCount ;
+
+	
 	public ClientData(String name) {
 		clientName = name ;
 		
 	}
 	
+	public ClientData clone() {
+		ClientData clone = new ClientData(this.clientName);
+		clone.setRunCount(this.runCount);
+	//	clone.clientWeight = this.clientWeight ;
+		return clone ;
+	}
 	public void resetClientWeight() {
 		clientWeight = ClientDataGenerator.getInstance().getNextWeight() ;
 	}
@@ -50,7 +58,6 @@ public class ClientData implements Comparable<ClientData>{
 			throw new RuntimeException("Invalid object type " + o.getClass().getName());
 		}
 		ClientData obj2 = (ClientData) o ;
-		System.out.println(" clientName " + this.clientName + " obj client " + obj2.clientName);
 		return this.clientName.equals(obj2.clientName);
 	}
 	@Override

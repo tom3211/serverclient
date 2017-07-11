@@ -46,7 +46,9 @@ public class JobExecutor  implements Runnable {
 					activeClient.incrementRunCount(); 
 					Thread.sleep(1000L);
 				}
-				FairScheduleManager.getInstance().addClient(activeClient);
+				ClientData newClient = activeClient.clone() ;
+				activeClient = null ;
+				FairScheduleManager.getInstance().addClient(newClient);
 				
 			} catch (InterruptedException e) {
 				if(logMsg)
