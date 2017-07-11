@@ -6,7 +6,7 @@ import java.net.*;
 import org.apache.commons.lang.StringUtils;
 import com.baton.utils.ServerClientConfig;
 
-public class Client {
+public class Client  implements Runnable{
 	private String clientName  ;
 	private String hostName ;
 	private int portNumber  ;
@@ -23,7 +23,7 @@ public class Client {
 		System.out.println("logClientMsg " + logClientMsg);
 
 	}
-	public void startClient() {
+	public void run() {
 		Socket clientSocket =  null ;
 		String serverResponse;
 
@@ -31,17 +31,15 @@ public class Client {
 			if(logClientMsg)
 				System.out.println(" Adding client " + System.currentTimeMillis()) ;
 			clientSocket = new Socket(hostName, portNumber);
-			PrintWriter out =
-					new PrintWriter(clientSocket.getOutputStream(), true);
-			BufferedReader in =
-					new BufferedReader(
-							new InputStreamReader(clientSocket.getInputStream()));
-		
+				InputStream input  = clientSocket.getInputStream();
+			OutputStream output = clientSocket.getOutputStream();
+			BufferedReader inputReader = new BufferedReader(new InputStreamReader(input)) ;
+
 			while (true) {
-				out.print(clientName + "\n");
-				out.flush(); 
-				serverResponse = in.readLine()  ;
-				
+				output.write((clientName + "\n").getBytes());
+				output.flush();
+				serverResponse = inputReader.readLine()  ;
+					
 				if(serverResponse != null) {
 					if("DUPLICATE".equals(serverResponse)) {
 						System.out.println(" Duplicate Client ..:" +   clientName + "  Please start with Unique Client Name") ;
@@ -50,10 +48,10 @@ public class Client {
 					if(logClientMsg)
 						System.out.println( serverResponse);
 				}
-
+				//System.out.println( serverResponse);
 				Thread.sleep(defaultSleepPeriod);
 				if(logClientMsg)
-					out.println(" Message from Client " + clientName);
+					System.out.println(" Message from Client " + clientName);
 			}
 		} catch (UnknownHostException e) {
 			System.out.println("Don't know about host " + hostName + " portNum " + portNumber);
@@ -77,14 +75,20 @@ public class Client {
 	}
 	
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args)  {
 		if(args.length < 1) {
 			System.out.println("No Client Name ");
 			throw new RuntimeException("No client name") ;
 		}
 		String clientName = args[0] ;
 		Client client = new Client(clientName);
-		client.startClient(); 
-		
+		Thread clientThread = new Thread(client);
+		clientThread.start();
+		try {
+			clientThread.join();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

@@ -68,14 +68,13 @@ public class Worker implements Runnable{
 				} else if (clientAdded == false && line == null) {
 					if(logMsg)
 						System.out.println(" Still not received clientName ") ;
-				} else {
+				}
+				if(clientAdded) {
 					output.write((clientName + "\n").getBytes());
 					output.flush();
 				}
 
 				Thread.sleep(sleepTime);
-				if(logMsg)
-					System.out.println(" ClientData " +inputReader.readLine()) ;
 			}
 		} catch (IOException e) {
 			//report exception somewhere.
