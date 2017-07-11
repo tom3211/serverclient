@@ -14,8 +14,7 @@ public class TestFairSchedulerManager {
 	public void beforeEachMethod() {
 		// add clients for each
 		for(int i = 0 ; i < clientNames.length ; i++) {
-			ClientData clientData = new ClientData(clientNames[i]);
-			FairScheduleManager.getInstance().addClient(clientData);
+			FairScheduleManager.getInstance().addClient(clientNames[i]);
 			if(intervalBetweenEachClient > 0L) {
 				try {
 					Thread.sleep(intervalBetweenEachClient);
@@ -42,23 +41,20 @@ public class TestFairSchedulerManager {
 	@Test
 	public void testRunningClient() {
 		// first test the A and then B
-		ClientData clientData = new ClientData(clientNames[0]);
-		boolean isRunning = FairScheduleManager.getInstance().isClientJobRunning(clientData);
+		boolean isRunning = FairScheduleManager.getInstance().isClientJobRunning(clientNames[0]);
 		Assert.assertEquals(isRunning, true);
 	}
 	// try adding duplicate clients
 	@Test
 	public void testDuplicateClients() {
 		// first test the A and then B
-		ClientData clientData = new ClientData(clientNames[0]);
-		boolean addedFlag = FairScheduleManager.getInstance().addClient(clientData);
+		boolean addedFlag = FairScheduleManager.getInstance().addClient(clientNames[0]);
 		Assert.assertEquals(addedFlag, false);
 		// size should be 2
-		Assert.assertEquals(FairScheduleManager.getInstance().getSize(), 2);
+		Assert.assertEquals(FairScheduleManager.getInstance().getSize(), 3);
 		
-		// ensure that b/c are not running
-		clientData = new ClientData(clientNames[2]);
-		addedFlag = FairScheduleManager.getInstance().addClient(clientData) ;
+	
+		addedFlag = FairScheduleManager.getInstance().addClient(clientNames[2]) ;
 		Assert.assertEquals(addedFlag, false);
 	}
 	
@@ -66,14 +62,14 @@ public class TestFairSchedulerManager {
 	public void testRunCount() {
 		// first test the A and then B
 		ClientData clientData = new ClientData(clientNames[0]);
-		clientData = FairScheduleManager.getInstance().getClientData(clientData);
+		clientData = FairScheduleManager.getInstance().getClientData(clientNames[0]);
 		Assert.assertNotNull(clientData);
 		try {
 			Thread.sleep(6000L );
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		ClientData clientNewData = FairScheduleManager.getInstance().getClientData(clientData);
+		ClientData clientNewData = FairScheduleManager.getInstance().getClientData(clientNames[0]);
 		Assert.assertNotNull(clientNewData);
 		boolean runCountGreater = clientNewData.getRunCount() > clientData.getRunCount() ? true : false ;
 		Assert.assertEquals(runCountGreater, true);

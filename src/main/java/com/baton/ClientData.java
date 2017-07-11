@@ -1,11 +1,8 @@
 package com.baton;
 
-import com.baton.utils.ClientDataGenerator;
-
 public class ClientData implements Comparable<ClientData>{
-	private Integer clientWeight ;
 	private String clientName ;
-	private int runCount ;
+	private int runCount =1 ;
 
 	
 	public ClientData(String name) {
@@ -16,20 +13,12 @@ public class ClientData implements Comparable<ClientData>{
 	public ClientData clone() {
 		ClientData clone = new ClientData(this.clientName);
 		clone.setRunCount(this.runCount);
-	//	clone.clientWeight = this.clientWeight ;
 		return clone ;
 	}
-	public void resetClientWeight() {
-		clientWeight = ClientDataGenerator.getInstance().getNextWeight() ;
-	}
+	
 	
 	public void incrementRunCount() {
 		runCount++ ;
-	}
-	
-	
-	public Integer getClientWeight() {
-		return clientWeight;
 	}
 
 	public String getClientName() {
@@ -65,18 +54,8 @@ public class ClientData implements Comparable<ClientData>{
 		if (o == null)
 			throw new RuntimeException("Object is null" );
 		ClientData obj2 = (ClientData) o ;
-		return (int) (this.clientWeight - obj2.clientWeight);
+		return this.clientName.compareTo(obj2.clientName) ;
 	}
-	
-	public static void main(String[] argv) {
-		ClientData cd1 = new ClientData("A");
-		cd1.resetClientWeight();
-		
-		ClientData cd2 = new ClientData("A");
-		cd2.resetClientWeight();
-		
-		System.out.println("Cd1 compare to " + cd1.compareTo(cd2));
-		
-	}
+
 
 }

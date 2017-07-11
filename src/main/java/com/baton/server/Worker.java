@@ -113,21 +113,20 @@ public class Worker implements Runnable{
 	}
 
 	private boolean registerWithScheduler(String clientName) throws IOException {
-		ClientData cd = new ClientData(clientName);
 		boolean success = false ;
-		if(isClientAlreadyRegistred(cd)) {
+		if(isClientAlreadyRegistred(clientName)) {
 			output.write(("DUPLICATE" + "\n").getBytes());
 			output.flush();
 		} else {
 			if(logMsg)
 				System.out.println(" registerWithScheduler " + clientName);
-			FairScheduleManager.getInstance().addClient(cd);
+			FairScheduleManager.getInstance().addClient(clientName);
 			success = true ;
 		}
 		return success ;
 	}
 
-	private boolean isClientAlreadyRegistred(ClientData cd) {
-		return FairScheduleManager.getInstance().isAlreadyRegisterd(cd) ;
+	private boolean isClientAlreadyRegistred(String clientName) {
+		return FairScheduleManager.getInstance().isAlreadyRegisterd(clientName) ;
 	}
 }
