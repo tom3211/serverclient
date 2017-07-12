@@ -14,7 +14,7 @@ public class TestFairSchedulerManager {
 	public void beforeEachMethod() {
 		// add clients for each
 		for(int i = 0 ; i < clientNames.length ; i++) {
-			FairScheduleManager.getInstance().addClient(clientNames[i]);
+			FairScheduleManager.getInstance().addClient(new ClientData(clientNames[i]));
 			if(intervalBetweenEachClient > 0L) {
 				try {
 					Thread.sleep(intervalBetweenEachClient);
@@ -51,7 +51,7 @@ public class TestFairSchedulerManager {
 		boolean addedFlag = FairScheduleManager.getInstance().addClient(clientNames[0]);
 		Assert.assertEquals(addedFlag, false);
 		// size should be 2
-		Assert.assertEquals(FairScheduleManager.getInstance().getSize(), 3);
+		Assert.assertEquals(FairScheduleManager.getInstance().getSize(), 2);
 		
 	
 		addedFlag = FairScheduleManager.getInstance().addClient(clientNames[2]) ;

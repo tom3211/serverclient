@@ -1,57 +1,65 @@
 package com.baton.scheduler;
 
-import java.util.List;
+import java.util.ArrayDeque;
 import java.util.PriorityQueue;
 
 import com.baton.ClientData;
 import com.baton.utils.ServerClientConfig;
 
 public class JobExecutor  implements Runnable {
-	private QueueData queueData = null ;
+	private ArrayDeque<ClientData> clientQueue = null ;
 	private int maxRuns  ;
+	private volatile ClientData activeClient = null ;
 	private boolean logMsg = false ;
 	private long sleepPeriod = 1000L ;
-	private int processingId = 0 ;
-	JobExecutor(QueueData queueData, int maxRuns) {
-		this.queueData = queueData ;
+	JobExecutor(ArrayDeque<ClientData> queue, int maxRuns) {
+		clientQueue = queue ;
 		this.maxRuns = maxRuns ;
 		logMsg = ServerClientConfig.getConfiguration().getBoolean("com.baton.server.logMsg", false) ;
 		sleepPeriod =  ServerClientConfig.getConfiguration().getLong("com.baton.server.jobExectorSleepPeriod", sleepPeriod);
 	}
-
-
+	
+	public  ClientData getActiveClient() {
+		return activeClient ;
+	}
+	
 	@Override
 	public void run() {
-		ClientData clientData = null ;
+		
 		while(true) {
-			synchronized(queueData) {
-				clientData = queueData.getClientDataToProcess() ;
-				if(clientData == null)
+			synchronized(clientQueue) {
+				if(clientQueue.isEmpty())
 					try {
-						queueData.wait() ;
+						clientQueue.wait() ;
 					} catch (InterruptedException e) {
-
+						
 					}
 				if(logMsg)
-					System.out.println(" Size " + queueData.getQueueSize());
-
+					System.out.println(" Size " + clientQueue.size());
+				activeClient = clientQueue.poll() ;
+				
 			}
-			if(clientData == null)
+			if(activeClient == null)
 				continue ; 
+			if(logMsg)
+				System.out.println(" JobExectuor adding element " + clientQueue.size());
 			try {	
 				for(int i = 0 ; i < maxRuns ; i++) {
-					System.out.println(clientData.getClientName() + ", Counter value: " + clientData.getRunCount());
-					clientData.incrementRunCount(); 
+					System.out.println(activeClient.getClientName() + ", Counter value: " + activeClient.getRunCount());
+					activeClient.incrementRunCount(); 
 					Thread.sleep(1000L);
-				}				
+				}
+				ClientData cloneData = activeClient.clone() ;
+				activeClient = null ;
+				FairScheduleManager.getInstance().addClient(cloneData);
 			} catch (InterruptedException e) {
 				if(logMsg)
-					System.out.println(" Received interrupted exception clientName " +
-							(clientData != null ? clientData.getClientName() : " null ") + System.currentTimeMillis());
+					System.out.println(" Received interrupted exception  " +
+							clientQueue.size()+ " " + System.currentTimeMillis());
 			}
+			activeClient = null ;
+
 		}
 	}
-
-
 
 }

@@ -1,4 +1,4 @@
-package com.baton.scheduler;
+package com.baton.linkedlist;
 
 import java.util.HashMap;
 import java.util.Map;

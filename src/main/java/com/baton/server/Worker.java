@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import com.baton.ClientData;
 import com.baton.scheduler.FairScheduleManager;
 import com.baton.utils.ServerClientConfig;
 
