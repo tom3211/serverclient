@@ -8,13 +8,14 @@ import org.testng.annotations.Test;
 import com.baton.ClientData;
 
 public class TestFairSchedulerManager {
+	
 	private String[] clientNames = {"A", "B", "C" } ;
 	private long intervalBetweenEachClient = -1L ;
 	@BeforeMethod
 	public void beforeEachMethod() {
 		// add clients for each
 		for(int i = 0 ; i < clientNames.length ; i++) {
-			FairScheduleManager.getInstance().addClient(new ClientData(clientNames[i]));
+			FairScheduleManager.getInstance().addClient(clientNames[i]);
 			if(intervalBetweenEachClient > 0L) {
 				try {
 					Thread.sleep(intervalBetweenEachClient);
@@ -51,7 +52,7 @@ public class TestFairSchedulerManager {
 		boolean addedFlag = FairScheduleManager.getInstance().addClient(clientNames[0]);
 		Assert.assertEquals(addedFlag, false);
 		// size should be 2
-		Assert.assertEquals(FairScheduleManager.getInstance().getSize(), 2);
+		Assert.assertEquals(FairScheduleManager.getInstance().getSize(), 3);
 		
 	
 		addedFlag = FairScheduleManager.getInstance().addClient(clientNames[2]) ;

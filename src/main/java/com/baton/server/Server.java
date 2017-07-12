@@ -8,63 +8,77 @@ import com.baton.utils.ServerClientConfig;
 
 /**
  * Simple server, receives a requests and starts a thread to serve the request.
- * How to Run
- * Server [portnumber] 
+ * How to Run Server [portnumber]
+ * 
  * @author vajrala
  *
  */
-public class Server implements Runnable{
+public class Server implements Runnable {
 
-	private int	serverPort   = 9000;
-    private ServerSocket serverSocket = null;
-     private boolean logMsg = false ;
-    
-    public Server(int port){
-        this.serverPort = port;
-        logMsg = ServerClientConfig.getConfiguration().getBoolean("com.baton.server.logMsg", false) ;    
-    }
+	private int serverPort = 9000;
+	private ServerSocket serverSocket = null;
+	private boolean logMsg = false;
+	private volatile boolean isStopped = false;
+	
+	public Server(int port) {
+		this.serverPort = port;
+		logMsg = ServerClientConfig.getConfiguration().getBoolean("com.baton.server.logMsg", false);
+	}
 
-    public void run(){
-       
-        openServerSocket();
-        while(true){
-            Socket clientSocket = null;
-            try {
-                clientSocket = serverSocket.accept();
-                if(logMsg) {
-                	System.out.println(" Got Connection request " + System.currentTimeMillis());
-                }
-            } catch (IOException e) { 
-               throw new RuntimeException("Error accepting client connection", e);
-            }
-            new Thread(new Worker (clientSocket)).start();
-        }
-      
-    }
+	public void run() {
 
+		openServerSocket();
+		while (isStopped() == false) {
+			Socket clientSocket = null;
+			try {
+				clientSocket = serverSocket.accept();
+				if (logMsg) {
+					System.out.println(" Got Connection request " + System.currentTimeMillis());
+				}
+			} catch (IOException e) {
+				throw new RuntimeException("Error accepting client connection", e);
+			}
+			new Thread(new Worker(clientSocket)).start();
+		}
+		stop() ;
+		System.out.println(" server stopped ");
 
-    private void openServerSocket() {
-        try {
-            this.serverSocket = new ServerSocket(serverPort);
-        } catch (IOException e) {
-            throw new RuntimeException("Cannot open port " + serverPort, e);
-        }
-    }
+	}
 
-    public static void main(String[] argv) {
-    	int port = 9000 ;
-    	if(argv.length == 1)
-    		port = Integer.parseInt(argv[0]);
-    	Server server = new Server(port) ;
-    	Thread serverThread = new Thread(server) ;
-    	serverThread.start();
-    	try {
+	private void openServerSocket() {
+		try {
+			this.serverSocket = new ServerSocket(serverPort);
+		} catch (IOException e) {
+			throw new RuntimeException("Cannot open port " + serverPort, e);
+		}
+	}
+
+	public  boolean isStopped() {
+		return this.isStopped;
+	}
+
+	public  void stop() {
+		this.isStopped = true;
+		try {
+			this.serverSocket.close();
+		} catch (IOException e) {
+			throw new RuntimeException("Error closing server", e);
+		}
+	}
+
+	public static void main(String[] argv) {
+		int port = 9000;
+		if (argv.length == 1)
+			port = Integer.parseInt(argv[0]);
+		Server server = new Server(port);
+		Thread serverThread = new Thread(server);
+		serverThread.start();
+		try {
 			serverThread.join();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
-    	
-    	
-    }
- }
+		}
+
+	}
+}
